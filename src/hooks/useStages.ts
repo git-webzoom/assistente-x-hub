@@ -6,7 +6,7 @@ export interface Stage {
   id: string;
   pipeline_id: string;
   name: string;
-  position: number;
+  order_index: number;
   created_at: string;
   updated_at: string;
 }
@@ -24,7 +24,7 @@ export const useStages = (pipelineId?: string) => {
         .from("stages")
         .select("*")
         .eq("pipeline_id", pipelineId)
-        .order("position", { ascending: true });
+        .order("order_index", { ascending: true });
 
       if (error) throw error;
       return data as Stage[];
@@ -36,15 +36,15 @@ export const useStages = (pipelineId?: string) => {
     mutationFn: async ({
       pipelineId,
       name,
-      position,
+      order_index,
     }: {
       pipelineId: string;
       name: string;
-      position: number;
+      order_index: number;
     }) => {
       const { data, error } = await supabase
         .from("stages")
-        .insert({ pipeline_id: pipelineId, name, position })
+        .insert({ pipeline_id: pipelineId, name, order_index })
         .select()
         .single();
 

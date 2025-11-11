@@ -4,13 +4,17 @@ import { useToast } from "@/hooks/use-toast";
 
 export interface Card {
   id: string;
+  tenant_id: string;
+  pipeline_id: string;
   stage_id: string;
+  contact_id: string | null;
   title: string;
   description: string | null;
   value: number;
-  contact_id: string | null;
+  product_ids: string[] | null;
   position: number;
   tags: string[] | null;
+  created_by: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -50,6 +54,7 @@ export const useCards = (pipelineId?: string) => {
 
   const createCard = useMutation({
     mutationFn: async ({
+      pipelineId,
       stageId,
       title,
       value,
@@ -57,6 +62,7 @@ export const useCards = (pipelineId?: string) => {
       description,
       tags,
     }: {
+      pipelineId: string;
       stageId: string;
       title: string;
       value: number;
@@ -67,6 +73,7 @@ export const useCards = (pipelineId?: string) => {
       const { data, error } = await supabase
         .from("cards")
         .insert({
+          pipeline_id: pipelineId,
           stage_id: stageId,
           title,
           value,

@@ -130,8 +130,8 @@ const Pipelines = () => {
 
   const handleCreateStage = (name: string) => {
     if (!selectedPipelineId) return;
-    const position = stages?.length || 0;
-    createStage({ pipelineId: selectedPipelineId, name, position });
+    const order_index = stages?.length || 0;
+    createStage({ pipelineId: selectedPipelineId, name, order_index });
   };
 
   const handleCreateCard = (data: {
@@ -140,10 +140,10 @@ const Pipelines = () => {
     description?: string;
     tags?: string[];
   }) => {
-    if (!selectedStageId) return;
+    if (!selectedStageId || !selectedPipelineId) return;
     const stageCards = cards?.filter((c) => c.stage_id === selectedStageId) || [];
     const position = stageCards.length;
-    createCard({ stageId: selectedStageId, ...data, position });
+    createCard({ pipelineId: selectedPipelineId, stageId: selectedStageId, ...data, position });
   };
 
   const handleDragStart = (event: DragStartEvent) => {
