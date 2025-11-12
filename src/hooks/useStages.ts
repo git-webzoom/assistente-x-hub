@@ -81,7 +81,21 @@ export const useStages = (pipelineId?: string) => {
     },
   });
 
-  const deleteStage = useMutation({
+const updateStageOrder = useMutation({
+  mutationFn: async ({ id, order_index }: { id: string; order_index: number }) => {
+    const { error } = await supabase
+      .from("stages")
+      .update({ order_index })
+      .eq("id", id);
+
+    if (error) throw error;
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ["stages"] });
+  },
+});
+
+const deleteStage = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("stages").delete().eq("id", id);
       if (error) throw error;

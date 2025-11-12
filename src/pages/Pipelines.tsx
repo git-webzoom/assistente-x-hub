@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, MoreVertical, DollarSign, Pencil, GripVertical } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import {
   Select,
   SelectContent,
@@ -109,6 +109,7 @@ const StageColumn = ({
   cards,
   onAddCard,
   onDeleteStage,
+  onDeleteCard,
   onRenameStage,
   getStageTotal,
 }: {
@@ -116,6 +117,7 @@ const StageColumn = ({
   cards: DraggableCardProps["card"][];
   onAddCard: () => void;
   onDeleteStage: () => void;
+  onDeleteCard: (id: string) => void;
   onRenameStage: (name: string) => void;
   getStageTotal: (stageId: string) => number;
 }) => {
@@ -127,7 +129,7 @@ const StageColumn = ({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-  } as React.CSSProperties;
+  } as CSSProperties;
 
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(stage.name);
@@ -201,7 +203,7 @@ const StageColumn = ({
             data-stage-id={stage.id}
           >
             {cards.map((card) => (
-              <DraggableCard key={card.id} card={card} onDelete={() => onDeleteStage} />
+              <DraggableCard key={card.id} card={card} onDelete={onDeleteCard} />
             ))}
 
             <Button
@@ -241,11 +243,11 @@ const Pipelines = () => {
     })
   );
 
-useEffect(() => {
-  if (pipelines && pipelines.length > 0 && !selectedPipelineId) {
-    setSelectedPipelineId(pipelines[0].id);
-  }
-}, [pipelines, selectedPipelineId]);
+  useEffect(() => {
+    if (pipelines && pipelines.length > 0 && !selectedPipelineId) {
+      setSelectedPipelineId(pipelines[0].id);
+    }
+  }, [pipelines, selectedPipelineId]);
 
   const handleCreateStage = (name: string) => {
     if (!selectedPipelineId) return;
@@ -303,7 +305,7 @@ useEffect(() => {
         toStageId = overCard.stage_id;
         const toCards = (cards || [])
           .filter((c) => c.stage_id === toStageId && c.id !== activeId)
-          .sort((a, b) => a.position - b.position);
+          .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
         targetIndex = toCards.findIndex((c) => c.id === overCardId);
       } else if (overType === "stage") {
         toStageId = String(over.id);
@@ -318,7 +320,7 @@ useEffect(() => {
       if (fromStageId === toStageId) {
         const list = (cards || [])
           .filter((c) => c.stage_id === fromStageId)
-          .sort((a, b) => a.position - b.position);
+          .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
         const oldIndex = list.findIndex((c) => c.id === activeId);
         const newIndex = targetIndex;
         const newList = arrayMove(list, oldIndex, newIndex);
@@ -326,10 +328,10 @@ useEffect(() => {
       } else {
         const fromList = (cards || [])
           .filter((c) => c.stage_id === fromStageId && c.id !== activeId)
-          .sort((a, b) => a.position - b.position);
+          .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
         const toList = (cards || [])
           .filter((c) => c.stage_id === toStageId && c.id !== activeId)
-          .sort((a, b) => a.position - b.position);
+          .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
         const inserted = [...toList];
         inserted.splice(targetIndex, 0, activeCard);
         // Atualiza destino (inclui stageId para o card movido)
@@ -411,73 +413,26 @@ useEffect(() => {
                   <Skeleton className="flex-shrink-0 w-80 h-96" />
                 </>
               ) : stages && stages.length > 0 ? (
-                stages.map((stage) => {
-                  const stageCards = getStageCards(stage.id);
-                  return (
-                    <div key={stage.id} className="flex-shrink-0 w-80">
-                      <Card className="bg-muted/50">
-                        <div className="p-4 border-b">
-                          <div className="flex items-center justify-between mb-2">
-                            <h3 className="font-semibold">{stage.name}</h3>
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm text-muted-foreground">
-                                {stageCards.length}
-                              </span>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-6 w-6">
-                                    <MoreVertical className="w-4 h-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent>
-                                  <DropdownMenuItem
-                                    onClick={() => deleteStage(stage.id)}
-                                    className="text-ax-error"
-                                  >
-                                    Excluir etapa
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            Total: R${" "}
-                            {getStageTotal(stage.id).toLocaleString("pt-BR", {
-                              minimumFractionDigits: 2,
-                            })}
-                          </div>
-                        </div>
-
-                        <SortableContext items={stageCards.map((c) => c.id)}>
-                          <div
-                            className="p-4 space-y-3 min-h-[200px]"
-                            data-stage-id={stage.id}
-                          >
-                            {stageCards.map((card) => (
-                              <DraggableCard
-                                key={card.id}
-                                card={card}
-                                onDelete={deleteCard}
-                              />
-                            ))}
-
-                            <Button
-                              variant="ghost"
-                              className="w-full justify-start text-muted-foreground"
-                              onClick={() => {
-                                setSelectedStageId(stage.id);
-                                setCardDialogOpen(true);
-                              }}
-                            >
-                              <Plus className="w-4 h-4 mr-2" />
-                              Adicionar card
-                            </Button>
-                          </div>
-                        </SortableContext>
-                      </Card>
-                    </div>
-                  );
-                })
+                <SortableContext items={stages.map((s) => s.id)}>
+                  {stages.map((stage) => {
+                    const stageCards = getStageCards(stage.id).sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+                    return (
+                      <StageColumn
+                        key={stage.id}
+                        stage={stage}
+                        cards={stageCards}
+                        onAddCard={() => {
+                          setSelectedStageId(stage.id);
+                          setCardDialogOpen(true);
+                        }}
+                        onDeleteStage={() => deleteStage(stage.id)}
+                        onDeleteCard={deleteCard}
+                        onRenameStage={(name) => updateStage({ id: stage.id, name })}
+                        getStageTotal={getStageTotal}
+                      />
+                    );
+                  })}
+                </SortableContext>
               ) : (
                 <div className="flex items-center justify-center w-full h-64 text-muted-foreground">
                   <div className="text-center">
@@ -498,10 +453,7 @@ useEffect(() => {
                   <div className="flex items-center gap-2">
                     <DollarSign className="w-4 h-4 text-ax-accent" />
                     <span className="font-semibold text-ax-accent">
-                      R${" "}
-                      {activeCard.value.toLocaleString("pt-BR", {
-                        minimumFractionDigits: 2,
-                      })}
+                      R$ {activeCard.value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                 </Card>
