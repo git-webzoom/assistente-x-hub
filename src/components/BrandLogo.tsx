@@ -10,7 +10,7 @@ const BrandLogo: React.FC<BrandLogoProps> = ({ className, alt = "AssistenteX" })
   const base = import.meta.env.BASE_URL || "/";
 
   return (
-    <div className={cn("relative min-w-[200px]", className)}>
+    <div className={cn("relative min-w-[160px]", className)}>
       {/* Light mode logo */}
       <img
         src={`${base}logo-02.png`}

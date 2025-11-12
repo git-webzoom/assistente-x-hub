@@ -38,7 +38,7 @@ const Dashboard = () => {
       <aside className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col">
         <div className="p-6 border-b border-sidebar-border">
           <Link to="/" className="flex items-center gap-2">
-            <BrandLogo className="w-[200px]" />
+            <BrandLogo className="w-[160px]" />
           </Link>
         </div>
 
