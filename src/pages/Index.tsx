@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { ArrowRight, BarChart3, Calendar, Users, Kanban, Zap, Shield } from "lucide-react";
 import heroDashboard from "@/assets/hero-dashboard.jpg";
+import BrandLogo from "@/components/BrandLogo";
 
 const Index = () => {
   return (
@@ -11,7 +12,7 @@ const Index = () => {
       <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-hero rounded-lg" />
+            <BrandLogo className="w-8 h-8" />
             <span className="text-xl font-bold">AssistenteX</span>
           </div>
           <nav className="hidden md:flex items-center gap-6">
@@ -172,17 +173,6 @@ const Index = () => {
           <h2 className="text-3xl md:text-5xl font-bold mb-6">
             Pronto para transformar seu atendimento?
           </h2>
-          <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
-            Junte-se a centenas de empresas que já otimizaram seus processos com AssistenteX
-          </p>
-          <Link to="/signup">
-            <Button 
-              size="lg" 
-              className="bg-background text-foreground hover:bg-background/90"
-            >
-              Começar Gratuitamente
-            </Button>
-          </Link>
         </div>
       </section>
 
@@ -192,7 +182,7 @@ const Index = () => {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-hero rounded-lg" />
+                <BrandLogo className="w-8 h-8" />
                 <span className="text-lg font-bold">AssistenteX</span>
               </div>
               <p className="text-sm text-muted-foreground">

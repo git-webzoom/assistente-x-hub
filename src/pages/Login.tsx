@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import BrandLogo from "@/components/BrandLogo";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -24,7 +25,7 @@ const Login = () => {
       <Card className="w-full max-w-md p-8 shadow-xl">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="w-10 h-10 bg-gradient-hero rounded-lg" />
+            <BrandLogo className="w-10 h-10" />
             <span className="text-2xl font-bold">AssistenteX</span>
           </Link>
           <h1 className="text-3xl font-bold mb-2">Bem-vindo de volta</h1>
@@ -61,7 +62,7 @@ const Login = () => {
             />
           </div>
 
-          <Button type="submit" className="w-full" variant="hero" size="lg" disabled={loading}>
+        <Button type="submit" className="w-full" variant="hero" size="lg" disabled={loading}>
             {loading ? "Entrando..." : "Entrar"}
           </Button>
         </form>

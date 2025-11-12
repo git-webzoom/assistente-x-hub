@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
+import BrandLogo from "@/components/BrandLogo";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -52,7 +53,7 @@ const Signup = () => {
       <Card className="w-full max-w-md p-8 shadow-xl">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="w-10 h-10 bg-gradient-hero rounded-lg" />
+            <BrandLogo className="w-10 h-10" />
             <span className="text-2xl font-bold">AssistenteX</span>
           </Link>
           <h1 className="text-3xl font-bold mb-2">Criar sua conta</h1>
