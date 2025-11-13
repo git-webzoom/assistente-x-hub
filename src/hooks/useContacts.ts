@@ -12,6 +12,7 @@ export interface Contact {
   position: string | null;
   tags: string[] | null;
   notes: string | null;
+  custom_fields: Record<string, any> | null;
   tenant_id: string;
   created_at: string;
   updated_at: string;
