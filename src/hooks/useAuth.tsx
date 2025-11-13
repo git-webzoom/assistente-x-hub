@@ -38,26 +38,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          await fetchUserRoles(session.user.id);
-        } else {
-          setUserRoles(null);
-        }
-        setLoading(false);
-      }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    // Set up auth state listener (avoid async calls inside callback)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+
       if (session?.user) {
-        await fetchUserRoles(session.user.id);
+        // Defer role fetching to avoid deadlocks
+        setTimeout(() => {
+          fetchUserRoles(session.user!.id);
+        }, 0);
+      } else {
+        setUserRoles(null);
+      }
+      setLoading(false);
+    });
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+
+      if (session?.user) {
+        // It's safe to fetch here, but we also defer to keep consistency
+        setTimeout(() => {
+          fetchUserRoles(session.user!.id);
+        }, 0);
       } else {
         setUserRoles(null);
       }
