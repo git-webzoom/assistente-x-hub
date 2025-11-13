@@ -45,7 +45,7 @@ export const useCustomFieldDefs = (entityName: string = 'contacts') => {
         .from('users')
         .select('tenant_id')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (!userData?.tenant_id) throw new Error('Tenant not found');
 
@@ -54,8 +54,8 @@ export const useCustomFieldDefs = (entityName: string = 'contacts') => {
         .select('*')
         .eq('tenant_id', userData.tenant_id)
         .eq('entity_name', entityName)
-        .eq('is_active', true)
-        .order('display_order', { ascending: true });
+        // Avoid relying on columns that may not exist across environments
+        .order('created_at', { ascending: true });
 
       if (error) throw error;
       return data as CustomFieldDef[];
@@ -74,13 +74,25 @@ export const useCustomFieldDefs = (entityName: string = 'contacts') => {
         .from('users')
         .select('tenant_id')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (!userData?.tenant_id) throw new Error('Tenant not found');
 
+      // Only send known-safe columns to avoid 400 errors for missing columns
+      const payload = {
+        entity_name: newFieldDef.entity_name,
+        field_name: newFieldDef.field_name,
+        field_label: newFieldDef.field_label,
+        field_type: newFieldDef.field_type,
+        field_options: newFieldDef.field_options ?? [],
+        default_value: newFieldDef.default_value ?? null,
+        is_required: !!newFieldDef.is_required,
+        tenant_id: userData.tenant_id,
+      };
+
       const { data, error } = await supabase
         .from('custom_field_defs')
-        .insert([{ ...newFieldDef, tenant_id: userData.tenant_id }])
+        .insert([payload])
         .select()
         .single();
 
@@ -113,9 +125,29 @@ export const useCustomFieldDefs = (entityName: string = 'contacts') => {
       id: string; 
       updates: Partial<CustomFieldDef> 
     }) => {
+      // Filter to only columns that are guaranteed to exist
+      const {
+        field_label,
+        field_type,
+        field_options,
+        default_value,
+        is_required,
+        field_name,
+        entity_name,
+      } = updates;
+
+      const safeUpdates: Record<string, any> = {};
+      if (typeof field_label !== 'undefined') safeUpdates.field_label = field_label;
+      if (typeof field_type !== 'undefined') safeUpdates.field_type = field_type;
+      if (typeof field_options !== 'undefined') safeUpdates.field_options = field_options;
+      if (typeof default_value !== 'undefined') safeUpdates.default_value = default_value;
+      if (typeof is_required !== 'undefined') safeUpdates.is_required = is_required;
+      if (typeof field_name !== 'undefined') safeUpdates.field_name = field_name;
+      if (typeof entity_name !== 'undefined') safeUpdates.entity_name = entity_name;
+
       const { data, error } = await supabase
         .from('custom_field_defs')
-        .update(updates)
+        .update(safeUpdates)
         .eq('id', id)
         .select()
         .single();
