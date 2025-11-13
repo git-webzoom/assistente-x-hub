@@ -4,7 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Separator } from '@/components/ui/separator';
 import { Contact } from '@/hooks/useContacts';
+import { useCustomFieldDefs } from '@/hooks/useCustomFieldDefs';
+import { CustomFieldInput } from '@/components/CustomFieldInput';
 import { z } from 'zod';
 import { Loader2 } from 'lucide-react';
 
@@ -35,6 +38,7 @@ export const ContactFormDialog = ({
   onSubmit,
   isSubmitting,
 }: ContactFormDialogProps) => {
+  const { fieldDefs } = useCustomFieldDefs('contacts');
   const [formData, setFormData] = useState<ContactFormData>({
     name: '',
     email: '',
@@ -44,6 +48,7 @@ export const ContactFormDialog = ({
     tags: '',
     notes: '',
   });
+  const [customFieldsData, setCustomFieldsData] = useState<Record<string, any>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -57,6 +62,7 @@ export const ContactFormDialog = ({
         tags: contact.tags?.join(', ') || '',
         notes: contact.notes || '',
       });
+      setCustomFieldsData(contact.custom_fields || {});
     } else {
       setFormData({
         name: '',
@@ -67,16 +73,36 @@ export const ContactFormDialog = ({
         tags: '',
         notes: '',
       });
+      // Initialize custom fields with default values
+      const initialCustomFields: Record<string, any> = {};
+      fieldDefs.forEach(def => {
+        initialCustomFields[def.field_name] = def.default_value || '';
+      });
+      setCustomFieldsData(initialCustomFields);
     }
     setErrors({});
-  }, [contact, open]);
+  }, [contact, open, fieldDefs]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
 
     try {
+      // Validate standard fields
       const validatedData = contactSchema.parse(formData);
+      
+      // Validate required custom fields
+      const customFieldErrors: Record<string, string> = {};
+      fieldDefs.forEach(def => {
+        if (def.is_required && !customFieldsData[def.field_name]) {
+          customFieldErrors[`custom_${def.field_name}`] = `${def.field_label} é obrigatório`;
+        }
+      });
+
+      if (Object.keys(customFieldErrors).length > 0) {
+        setErrors(customFieldErrors);
+        return;
+      }
       
       const submitData = {
         name: validatedData.name,
@@ -88,6 +114,7 @@ export const ContactFormDialog = ({
           ? validatedData.tags.split(',').map(tag => tag.trim()).filter(Boolean)
           : null,
         notes: validatedData.notes || null,
+        custom_fields: customFieldsData,
       };
 
       await onSubmit(submitData);
@@ -107,7 +134,7 @@ export const ContactFormDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {contact ? 'Editar Contato' : 'Novo Contato'}
@@ -203,6 +230,35 @@ export const ContactFormDialog = ({
             />
             {errors.notes && <p className="text-sm text-destructive">{errors.notes}</p>}
           </div>
+
+          {/* Custom Fields Section */}
+          {fieldDefs && fieldDefs.length > 0 && (
+            <>
+              <Separator className="my-4" />
+              <div className="space-y-4">
+                <h3 className="font-medium text-sm">Campos Personalizados</h3>
+                {fieldDefs.map((fieldDef) => (
+                  <div key={fieldDef.id} className="space-y-2">
+                    <Label htmlFor={fieldDef.field_name}>
+                      {fieldDef.field_label}
+                      {fieldDef.is_required && ' *'}
+                    </Label>
+                    <CustomFieldInput
+                      fieldDef={fieldDef}
+                      value={customFieldsData[fieldDef.field_name]}
+                      onChange={(value) => 
+                        setCustomFieldsData(prev => ({
+                          ...prev,
+                          [fieldDef.field_name]: value
+                        }))
+                      }
+                      error={errors[`custom_${fieldDef.field_name}`]}
+                    />
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
 
           <DialogFooter>
             <Button
