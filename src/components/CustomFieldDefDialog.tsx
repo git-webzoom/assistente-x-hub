@@ -54,13 +54,13 @@ export const CustomFieldDefDialog = ({
   useEffect(() => {
     if (fieldDef) {
       setFormData({
-        field_name: fieldDef.field_name,
-        field_label: fieldDef.field_label,
-        field_type: fieldDef.field_type,
-        field_options: fieldDef.field_options?.join('\n') || '',
-        default_value: fieldDef.default_value || '',
-        is_required: fieldDef.is_required,
-        display_order: fieldDef.display_order,
+        field_name: fieldDef.field_name || '',
+        field_label: fieldDef.field_label || '',
+        field_type: fieldDef.field_type || 'text',
+        field_options: Array.isArray(fieldDef.field_options) ? fieldDef.field_options.join('\n') : '',
+        default_value: fieldDef.default_value ?? '',
+        is_required: fieldDef.is_required ?? false,
+        display_order: fieldDef.display_order ?? 0,
       });
     } else {
       setFormData({
@@ -98,7 +98,6 @@ export const CustomFieldDefDialog = ({
       };
 
       await onSubmit(submitData);
-      onOpenChange(false);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const newErrors: Record<string, string> = {};
