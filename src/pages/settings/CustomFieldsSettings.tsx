@@ -62,10 +62,16 @@ const CustomFieldsSettings = () => {
   };
 
   const handleSubmit = async (data: any) => {
-    if (selectedFieldDef) {
-      await updateFieldDef.mutateAsync({ id: selectedFieldDef.id, updates: data });
-    } else {
-      await createFieldDef.mutateAsync(data);
+    try {
+      if (selectedFieldDef) {
+        await updateFieldDef.mutateAsync({ id: selectedFieldDef.id, updates: data });
+      } else {
+        await createFieldDef.mutateAsync(data);
+      }
+      setDialogOpen(false);
+      setSelectedFieldDef(null);
+    } catch (error) {
+      // Error já é tratado pelo mutation
     }
   };
 
