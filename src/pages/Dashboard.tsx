@@ -31,7 +31,6 @@ const Dashboard = () => {
     { icon: Kanban, label: "Funis", path: "/dashboard/pipelines" },
     { icon: Calendar, label: "Agenda", path: "/dashboard/calendar" },
     { icon: CheckSquare, label: "Tarefas", path: "/dashboard/tasks" },
-    ...(isAdmin ? [{ icon: Settings, label: "Campos Personalizados", path: "/dashboard/custom-fields" }] : []),
     { icon: Settings, label: "Configurações", path: "/dashboard/settings" },
   ];
 
