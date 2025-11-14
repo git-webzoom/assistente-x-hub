@@ -14,9 +14,11 @@ interface AppointmentDialogProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: any) => void;
   initial?: Appointment;
+  selectedDate?: Date | null;
+  onDelete?: () => void;
 }
 
-export const AppointmentDialog = ({ open, onOpenChange, onSubmit, initial }: AppointmentDialogProps) => {
+export const AppointmentDialog = ({ open, onOpenChange, onSubmit, initial, selectedDate, onDelete }: AppointmentDialogProps) => {
   const { contacts } = useContacts();
   const [formData, setFormData] = useState({
     title: "",
@@ -37,6 +39,17 @@ export const AppointmentDialog = ({ open, onOpenChange, onSubmit, initial }: App
         location: initial.location || "",
         status: initial.status || "scheduled",
       });
+    } else if (selectedDate) {
+      // Pre-fill with selected date from calendar
+      const dateStr = format(selectedDate, "yyyy-MM-dd");
+      setFormData({
+        title: "",
+        contact_id: "",
+        start_time: `${dateStr}T09:00`,
+        end_time: `${dateStr}T10:00`,
+        location: "",
+        status: "scheduled",
+      });
     } else {
       setFormData({
         title: "",
@@ -47,7 +60,7 @@ export const AppointmentDialog = ({ open, onOpenChange, onSubmit, initial }: App
         status: "scheduled",
       });
     }
-  }, [initial, open]);
+  }, [initial, selectedDate, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,13 +155,20 @@ export const AppointmentDialog = ({ open, onOpenChange, onSubmit, initial }: App
             </Select>
           </div>
 
-          <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
-            <Button type="submit">
-              {initial ? "Atualizar" : "Criar"}
-            </Button>
+          <div className="flex justify-between items-center gap-2 pt-4">
+            {initial && onDelete && (
+              <Button type="button" variant="destructive" onClick={onDelete}>
+                Excluir
+              </Button>
+            )}
+            <div className="flex justify-end gap-2 ml-auto">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit">
+                {initial ? "Atualizar" : "Criar"}
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>
