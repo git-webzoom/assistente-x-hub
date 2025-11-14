@@ -45,9 +45,10 @@ interface DraggableCardProps {
     position?: number;
   };
   onDelete: (id: string) => void;
+  onEdit: (card: DraggableCardProps["card"]) => void;
 }
 
-const DraggableCard = ({ card, onDelete }: DraggableCardProps) => {
+const DraggableCard = ({ card, onDelete, onEdit }: DraggableCardProps) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: card.id, data: { type: "card", stageId: card.stage_id } });
 
@@ -74,6 +75,9 @@ const DraggableCard = ({ card, onDelete }: DraggableCardProps) => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => onEdit(card)}>
+              Editar
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onDelete(card.id)} className="text-ax-error">
               Excluir
             </DropdownMenuItem>
@@ -110,6 +114,7 @@ const StageColumn = ({
   onAddCard,
   onDeleteStage,
   onDeleteCard,
+  onEditCard,
   onRenameStage,
   getStageTotal,
 }: {
@@ -118,6 +123,7 @@ const StageColumn = ({
   onAddCard: () => void;
   onDeleteStage: () => void;
   onDeleteCard: (id: string) => void;
+  onEditCard: (card: DraggableCardProps["card"]) => void;
   onRenameStage: (name: string) => void;
   getStageTotal: (stageId: string) => number;
 }) => {
@@ -229,6 +235,8 @@ const Pipelines = () => {
   const [selectedStageId, setSelectedStageId] = useState<string>("");
   const [activeCard, setActiveCard] = useState<any>(null);
   const [optimisticCards, setOptimisticCards] = useState<any[] | null>(null);
+  const [cardDialogMode, setCardDialogMode] = useState<'create' | 'edit'>('create');
+  const [editingCard, setEditingCard] = useState<any | null>(null);
 
   const { pipelines, isLoading: pipelinesLoading, createPipeline } = usePipelines();
   const { stages, isLoading: stagesLoading, createStage, deleteStage, updateStage, updateStageOrder } =
@@ -543,8 +551,19 @@ const Pipelines = () => {
 
       <CardDialog
         open={cardDialogOpen}
-        onOpenChange={setCardDialogOpen}
-        onSubmit={handleCreateCard}
+        onOpenChange={(open) => {
+          setCardDialogOpen(open);
+          if (!open) setEditingCard(null);
+        }}
+        mode={cardDialogMode}
+        initial={editingCard ? { id: editingCard.id, title: editingCard.title, value: editingCard.value, description: editingCard.description ?? "", tags: editingCard.tags ?? [] } : undefined}
+        onSubmit={(data) => {
+          if (cardDialogMode === 'create') {
+            handleCreateCard(data);
+          } else if (editingCard) {
+            updateCard({ id: editingCard.id, title: data.title, value: data.value, description: data.description, tags: data.tags });
+          }
+        }}
       />
     </div>
   );

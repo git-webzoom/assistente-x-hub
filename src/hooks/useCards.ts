@@ -124,14 +124,26 @@ export const useCards = (pipelineId?: string) => {
       id,
       stageId,
       position,
+      title,
+      value,
+      description,
+      tags,
     }: {
       id: string;
       stageId?: string;
       position?: number;
+      title?: string;
+      value?: number;
+      description?: string;
+      tags?: string[];
     }) => {
       const updates: any = {};
-      if (stageId) updates.stage_id = stageId;
+      if (stageId !== undefined) updates.stage_id = stageId;
       if (position !== undefined) updates.position = position;
+      if (title !== undefined) updates.title = title;
+      if (value !== undefined) updates.value = value;
+      if (description !== undefined) updates.description = description ?? null;
+      if (tags !== undefined) updates.tags = tags.length ? tags : null;
 
       const { error } = await supabase.from("cards").update(updates).eq("id", id);
 
