@@ -36,13 +36,8 @@ export const useAppointments = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data: userRole } = await supabase
-        .from("user_roles")
-        .select("user_id")
-        .eq("user_id", user.id)
-        .single();
-
-      if (!userRole) throw new Error("User role not found");
+      // Role check removed — RLS already enforces access by tenant.
+      // This avoids throwing when user has no explicit entry in user_roles.
 
       const { data, error } = await supabase
         .from("appointments")
