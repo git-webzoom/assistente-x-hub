@@ -238,6 +238,13 @@ const Pipelines = () => {
 
   const displayCards = optimisticCards ?? cards;
 
+  // Limpa estado otimista quando os dados reais chegarem
+  useEffect(() => {
+    if (optimisticCards && cards) {
+      setOptimisticCards(null);
+    }
+  }, [cards]);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -306,10 +313,18 @@ const Pipelines = () => {
         const overCard = cards?.find((c) => c.id === overCardId);
         if (!overCard) return;
         toStageId = overCard.stage_id;
-        const toCards = (cards || [])
-          .filter((c) => c.stage_id === toStageId && c.id !== activeId)
-          .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-        targetIndex = toCards.findIndex((c) => c.id === overCardId);
+        if (toStageId === fromStageId) {
+          // Índice no array completo da mesma etapa (inclui o ativo)
+          const list = (cards || [])
+            .filter((c) => c.stage_id === fromStageId)
+            .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+          targetIndex = list.findIndex((c) => c.id === overCardId);
+        } else {
+          const toCards = (cards || [])
+            .filter((c) => c.stage_id === toStageId && c.id !== activeId)
+            .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+          targetIndex = toCards.findIndex((c) => c.id === overCardId);
+        }
       } else if (overType === "stage") {
         toStageId = String(over.id);
         targetIndex = (cards || []).filter((c) => c.stage_id === toStageId).length;
@@ -331,7 +346,7 @@ const Pipelines = () => {
         const oldIndex = list.findIndex((c) => c.id === activeId);
         const newIndex = targetIndex;
         const reordered = arrayMove(list, oldIndex, newIndex);
-        
+
         // Atualiza positions no array optimistic
         newCards = newCards.map((c) => {
           if (c.stage_id !== fromStageId) return c;
@@ -340,12 +355,9 @@ const Pipelines = () => {
         });
 
         setOptimisticCards(newCards);
-        
+
         // Envia para backend
         reordered.forEach((c, idx) => updateCard({ id: c.id, position: idx }));
-        
-        // Remove optimistic após delay
-        setTimeout(() => setOptimisticCards(null), 500);
       } else {
         // Mover entre etapas
         const fromList = newCards
@@ -354,7 +366,7 @@ const Pipelines = () => {
         const toList = newCards
           .filter((c) => c.stage_id === toStageId && c.id !== activeId)
           .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-        
+
         const inserted = [...toList];
         inserted.splice(targetIndex, 0, { ...activeCard, stage_id: toStageId });
 
@@ -381,9 +393,6 @@ const Pipelines = () => {
           updateCard({ id: c.id, position: idx, ...(c.id === activeId ? { stageId: toStageId } : {}) })
         );
         fromList.forEach((c, idx) => updateCard({ id: c.id, position: idx }));
-
-        // Remove optimistic após delay
-        setTimeout(() => setOptimisticCards(null), 500);
       }
     }
   };
