@@ -228,12 +228,15 @@ const Pipelines = () => {
   const [cardDialogOpen, setCardDialogOpen] = useState(false);
   const [selectedStageId, setSelectedStageId] = useState<string>("");
   const [activeCard, setActiveCard] = useState<any>(null);
+  const [optimisticCards, setOptimisticCards] = useState<any[] | null>(null);
 
   const { pipelines, isLoading: pipelinesLoading, createPipeline } = usePipelines();
   const { stages, isLoading: stagesLoading, createStage, deleteStage, updateStage, updateStageOrder } =
     useStages(selectedPipelineId);
   const { cards, isLoading: cardsLoading, createCard, updateCard, deleteCard } =
     useCards(selectedPipelineId);
+
+  const displayCards = optimisticCards ?? cards;
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -290,7 +293,7 @@ const Pipelines = () => {
       return;
     }
 
-    // Reordenar/mover cards
+    // Reordenar/mover cards com optimistic update
     if (activeType === "card") {
       const activeId = String(active.id);
       const fromStageId = (active.data.current as any)?.stageId as string;
@@ -315,37 +318,78 @@ const Pipelines = () => {
       }
 
       const activeCard = cards?.find((c) => c.id === activeId);
-      if (!activeCard) return;
+      if (!activeCard || !cards) return;
+
+      // Optimistic update: atualiza UI imediatamente
+      let newCards = [...cards];
 
       if (fromStageId === toStageId) {
-        const list = (cards || [])
+        // Reordenar dentro da mesma etapa
+        const list = newCards
           .filter((c) => c.stage_id === fromStageId)
           .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
         const oldIndex = list.findIndex((c) => c.id === activeId);
         const newIndex = targetIndex;
-        const newList = arrayMove(list, oldIndex, newIndex);
-        newList.forEach((c, idx) => updateCard({ id: c.id, position: idx }));
+        const reordered = arrayMove(list, oldIndex, newIndex);
+        
+        // Atualiza positions no array optimistic
+        newCards = newCards.map((c) => {
+          if (c.stage_id !== fromStageId) return c;
+          const idx = reordered.findIndex((rc) => rc.id === c.id);
+          return idx >= 0 ? { ...c, position: idx } : c;
+        });
+
+        setOptimisticCards(newCards);
+        
+        // Envia para backend
+        reordered.forEach((c, idx) => updateCard({ id: c.id, position: idx }));
+        
+        // Remove optimistic após delay
+        setTimeout(() => setOptimisticCards(null), 500);
       } else {
-        const fromList = (cards || [])
+        // Mover entre etapas
+        const fromList = newCards
           .filter((c) => c.stage_id === fromStageId && c.id !== activeId)
           .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-        const toList = (cards || [])
+        const toList = newCards
           .filter((c) => c.stage_id === toStageId && c.id !== activeId)
           .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+        
         const inserted = [...toList];
-        inserted.splice(targetIndex, 0, activeCard);
-        // Atualiza destino (inclui stageId para o card movido)
+        inserted.splice(targetIndex, 0, { ...activeCard, stage_id: toStageId });
+
+        // Atualiza o array completo
+        newCards = newCards.map((c) => {
+          if (c.id === activeId) {
+            return { ...c, stage_id: toStageId, position: targetIndex };
+          }
+          if (c.stage_id === toStageId && c.id !== activeId) {
+            const idx = inserted.findIndex((ic) => ic.id === c.id);
+            return { ...c, position: idx };
+          }
+          if (c.stage_id === fromStageId && c.id !== activeId) {
+            const idx = fromList.findIndex((fc) => fc.id === c.id);
+            return { ...c, position: idx };
+          }
+          return c;
+        });
+
+        setOptimisticCards(newCards);
+
+        // Envia para backend
         inserted.forEach((c, idx) =>
           updateCard({ id: c.id, position: idx, ...(c.id === activeId ? { stageId: toStageId } : {}) })
         );
-        // Reindexa origem
         fromList.forEach((c, idx) => updateCard({ id: c.id, position: idx }));
+
+        // Remove optimistic após delay
+        setTimeout(() => setOptimisticCards(null), 500);
       }
     }
   };
 
   const getStageCards = (stageId: string) => {
-    return cards?.filter((c) => c.stage_id === stageId) || [];
+    return displayCards?.filter((c) => c.stage_id === stageId) || [];
   };
 
   const getStageTotal = (stageId: string) => {
