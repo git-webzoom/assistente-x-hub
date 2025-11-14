@@ -203,23 +203,24 @@ const StageColumn = ({
           </div>
         </div>
 
+        <div className="p-4 pt-3 border-b">
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-muted-foreground hover:bg-accent"
+            onClick={onAddCard}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Adicionar card
+          </Button>
+        </div>
         <SortableContext items={cards.map((c) => c.id)}>
           <div
-            className="p-4 space-y-3 min-h-[200px] max-h-[calc(100dvh-260px)] overflow-y-auto scroll-smooth scrollable-stage"
+            className="p-4 space-y-3 min-h-[150px] max-h-[calc(100dvh-330px)] overflow-y-auto scroll-smooth scrollable-stage"
             data-stage-id={stage.id}
           >
             {cards.map((card) => (
               <DraggableCard key={card.id} card={card} onDelete={onDeleteCard} onEdit={onEditCard} />
             ))}
-
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-muted-foreground"
-              onClick={onAddCard}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Adicionar card
-            </Button>
           </div>
         </SortableContext>
       </Card>
