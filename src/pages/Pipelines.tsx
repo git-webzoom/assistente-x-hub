@@ -203,7 +203,7 @@ const StageColumn = ({
           </div>
         </div>
 
-        <div className="p-4 pt-3 border-b">
+        <div className="px-4 py-2 border-b">
           <Button
             variant="ghost"
             className="w-full justify-start text-muted-foreground hover:bg-accent"
