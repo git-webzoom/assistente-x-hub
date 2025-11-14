@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -15,32 +15,53 @@ import { Textarea } from "@/components/ui/textarea";
 interface CardDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: { title: string; value: number; description?: string; tags?: string[] }) => void;
+  mode: "create" | "edit";
+  initial?: {
+    id: string;
+    title: string;
+    value: number;
+    description?: string | null;
+    tags?: string[] | null;
+  };
+  onSubmit: (data: { id?: string; title: string; value: number; description?: string; tags?: string[] }) => void;
 }
 
-export const CardDialog = ({
-  open,
-  onOpenChange,
-  onSubmit,
-}: CardDialogProps) => {
+export const CardDialog = ({ open, onOpenChange, mode, initial, onSubmit }: CardDialogProps) => {
   const [title, setTitle] = useState("");
   const [value, setValue] = useState("");
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (title.trim() && value) {
-      onSubmit({
-        title: title.trim(),
-        value: parseFloat(value),
-        description: description.trim() || undefined,
-        tags: tags.trim() ? tags.split(",").map(t => t.trim()) : undefined,
-      });
+  useEffect(() => {
+    if (open && initial) {
+      setTitle(initial.title || "");
+      setValue(String(initial.value ?? ""));
+      setDescription(initial.description || "");
+      setTags(Array.isArray(initial.tags) ? initial.tags.join(", ") : "");
+    } else if (open && !initial) {
       setTitle("");
       setValue("");
       setDescription("");
       setTags("");
+    }
+  }, [open, initial]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (title.trim() && value) {
+      onSubmit({
+        id: initial?.id,
+        title: title.trim(),
+        value: parseFloat(value),
+        description: description.trim() || undefined,
+        tags: tags.trim() ? tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
+      });
+      if (mode === "create") {
+        setTitle("");
+        setValue("");
+        setDescription("");
+        setTags("");
+      }
       onOpenChange(false);
     }
   };
@@ -49,9 +70,9 @@ export const CardDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Novo Card</DialogTitle>
+          <DialogTitle>{mode === "edit" ? "Editar Card" : "Novo Card"}</DialogTitle>
           <DialogDescription>
-            Adicione uma nova oportunidade à pipeline
+            {mode === "edit" ? "Atualize as informações da oportunidade" : "Adicione uma nova oportunidade à pipeline"}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -101,7 +122,7 @@ export const CardDialog = ({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit">Criar Card</Button>
+            <Button type="submit">{mode === "edit" ? "Salvar" : "Criar Card"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
