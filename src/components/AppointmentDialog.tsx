@@ -94,12 +94,17 @@ export const AppointmentDialog = ({ open, onOpenChange, onSubmit, initial, selec
 
           <div className="space-y-2">
             <Label htmlFor="contact">Contato</Label>
-            <Select value={formData.contact_id} onValueChange={(value) => setFormData({ ...formData, contact_id: value })}>
+            <Select
+              value={formData.contact_id || undefined}
+              onValueChange={(value) =>
+                setFormData({ ...formData, contact_id: value === "none" ? "" : value })
+              }
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione um contato" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Nenhum</SelectItem>
+                <SelectItem value="none">Nenhum</SelectItem>
                 {contacts?.map((contact) => (
                   <SelectItem key={contact.id} value={contact.id}>
                     {contact.name}
