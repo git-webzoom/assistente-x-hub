@@ -209,7 +209,7 @@ const StageColumn = ({
             data-stage-id={stage.id}
           >
             {cards.map((card) => (
-              <DraggableCard key={card.id} card={card} onDelete={onDeleteCard} />
+              <DraggableCard key={card.id} card={card} onDelete={onDeleteCard} onEdit={onEditCard} />
             ))}
 
             <Button
@@ -484,10 +484,18 @@ const Pipelines = () => {
                         cards={stageCards}
                         onAddCard={() => {
                           setSelectedStageId(stage.id);
+                          setCardDialogMode('create');
+                          setEditingCard(null);
                           setCardDialogOpen(true);
                         }}
                         onDeleteStage={() => deleteStage(stage.id)}
                         onDeleteCard={deleteCard}
+                        onEditCard={(card) => {
+                          setSelectedStageId(card.stage_id);
+                          setCardDialogMode('edit');
+                          setEditingCard(card);
+                          setCardDialogOpen(true);
+                        }}
                         onRenameStage={(name) => updateStage({ id: stage.id, name })}
                         getStageTotal={getStageTotal}
                       />
