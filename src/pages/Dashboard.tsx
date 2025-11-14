@@ -29,7 +29,7 @@ const Dashboard = () => {
     { icon: Users, label: "Contatos", path: "/dashboard/contacts" },
     { icon: Package, label: "Produtos", path: "/dashboard/products" },
     { icon: Kanban, label: "Funis", path: "/dashboard/pipelines" },
-    { icon: Calendar, label: "Agenda", path: "/dashboard/calendar" },
+    { icon: Calendar, label: "Agenda", path: "/dashboard/appointments" },
     { icon: CheckSquare, label: "Tarefas", path: "/dashboard/tasks" },
     { icon: Settings, label: "Configurações", path: "/dashboard/settings" },
   ];
