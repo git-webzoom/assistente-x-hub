@@ -35,7 +35,7 @@ export const CalendarEvent = ({ appointment, onClick }: CalendarEventProps) => {
       <div className="font-medium truncate">{appointment.title}</div>
       <div className="flex items-center gap-1 text-muted-foreground mt-0.5">
         <Clock className="w-3 h-3" />
-        <span>{format(startTime, "HH:mm")}</span>
+        <span>{isNaN(startTime.getTime()) ? "--:--" : format(startTime, "HH:mm")}</span>
       </div>
     </div>
   );

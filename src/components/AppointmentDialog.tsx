@@ -31,17 +31,20 @@ export const AppointmentDialog = ({ open, onOpenChange, onSubmit, initial, selec
 
   useEffect(() => {
     if (initial) {
+      const start = new Date(initial.start_time);
+      const end = new Date(initial.end_time);
       setFormData({
         title: initial.title,
         contact_id: initial.contact_id || "",
-        start_time: format(new Date(initial.start_time), "yyyy-MM-dd'T'HH:mm"),
-        end_time: format(new Date(initial.end_time), "yyyy-MM-dd'T'HH:mm"),
+        start_time: isNaN(start.getTime()) ? "" : format(start, "yyyy-MM-dd'T'HH:mm"),
+        end_time: isNaN(end.getTime()) ? "" : format(end, "yyyy-MM-dd'T'HH:mm"),
         location: initial.location || "",
         status: initial.status || "scheduled",
       });
     } else if (selectedDate) {
       // Pre-fill with selected date from calendar
-      const dateStr = format(selectedDate, "yyyy-MM-dd");
+      const selected = new Date(selectedDate);
+      const dateStr = isNaN(selected.getTime()) ? format(new Date(), "yyyy-MM-dd") : format(selected, "yyyy-MM-dd");
       setFormData({
         title: "",
         contact_id: "",
