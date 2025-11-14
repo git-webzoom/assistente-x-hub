@@ -203,10 +203,11 @@ const StageColumn = ({
           </div>
         </div>
 
-        <div className="px-4 py-2 border-b">
+        <div className="px-4 py-1 border-b">
           <Button
             variant="ghost"
-            className="w-full justify-start text-muted-foreground hover:bg-accent"
+            size="sm"
+            className="w-full justify-start text-muted-foreground hover:bg-accent h-8"
             onClick={onAddCard}
           >
             <Plus className="w-4 h-4 mr-2" />
