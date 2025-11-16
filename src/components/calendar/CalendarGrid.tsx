@@ -67,7 +67,7 @@ export const CalendarGrid = ({ currentDate, appointments, onEventClick, onDayCli
               >
                 {format(day, "d")}
               </div>
-              <div className="space-y-1 overflow-y-auto max-h-[80px]">
+              <div className="space-y-1 overflow-y-auto max-h-[80px]" onClick={(e) => e.stopPropagation()}>
                 {dayAppointments.map((appointment) => (
                   <CalendarEvent
                     key={appointment.id}
