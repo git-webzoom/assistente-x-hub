@@ -4,6 +4,7 @@ import { toast } from "@/hooks/use-toast";
 
 export interface Appointment {
   id: string;
+  tenant_id: string;
   card_id?: string;
   contact_id?: string;
   title: string;
