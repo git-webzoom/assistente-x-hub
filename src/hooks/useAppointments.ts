@@ -58,17 +58,18 @@ export const useAppointments = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data: userRoleData } = await supabase
-        .from("users")
-        .select("tenant_id")
-        .eq("id", user.id)
-        .single();
+      // Get tenant via security-definer function (bypasses RLS safely)
+      const { data: tenantUuid, error: tenantErr } = await supabase.rpc(
+        "get_user_tenant",
+        { _user_id: user.id }
+      );
 
-      if (!userRoleData?.tenant_id) throw new Error("Tenant not found");
+      if (tenantErr) throw tenantErr;
+      if (!tenantUuid) throw new Error("Tenant not found");
 
       const { data, error } = await supabase
         .from("appointments")
-        .insert([{ ...input, tenant_id: userRoleData.tenant_id }])
+        .insert([{ ...input, tenant_id: tenantUuid }])
         .select()
         .single();
 
