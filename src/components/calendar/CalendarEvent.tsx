@@ -25,9 +25,14 @@ export const CalendarEvent = ({ appointment, onClick }: CalendarEventProps) => {
     }
   };
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent click from bubbling to day cell
+    onClick();
+  };
+
   return (
     <div
-      onClick={onClick}
+      onClick={handleClick}
       className={`text-xs p-1.5 rounded border-l-2 cursor-pointer transition-colors mb-1 ${getStatusColor(
         appointment.status
       )}`}
