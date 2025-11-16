@@ -1,67 +1,68 @@
-# 🔧 Instruções de Migration - Appointments
+# 🔧 Instruções de Migration - Appointments (COMPLETA)
 
-## Problema Resolvido
-O erro de "violates row-level security policy" na tabela `appointments` foi causado por:
-1. A tabela não tinha a coluna `tenant_id` (obrigatória para RLS)
-2. A política RLS antiga exigia `card_id` OU `contact_id`, mas ambos são opcionais
+## ⚠️ EXECUTE ESTE SCRIPT AGORA
 
-## ✅ Execute esta Migration no Supabase
+Acesse o **SQL Editor** do seu projeto Supabase e execute o arquivo:
+**`supabase_fix_appointments_complete.sql`**
 
-Acesse o **SQL Editor** do seu projeto Supabase e execute o seguinte SQL:
+Este script faz TUDO de uma vez:
+
+### ✅ O que será corrigido:
+
+1. **Função get_user_tenant**: Cria/atualiza a função segura para buscar tenant
+2. **Coluna tenant_id**: Adiciona se não existir
+3. **Índice**: Cria índice para performance
+4. **Migração de dados**: Popula tenant_id nos registros existentes
+5. **Constraint NOT NULL**: Torna tenant_id obrigatório
+6. **Políticas RLS**: Remove políticas antigas e cria nova política simplificada
+7. **Permissões**: Garante permissões corretas
+
+### 📋 Como executar:
+
+1. Abra o Supabase Dashboard
+2. Vá em **SQL Editor**
+3. Clique em **New Query**
+4. Copie TODO o conteúdo de `supabase_fix_appointments_complete.sql`
+5. Cole no editor
+6. Clique em **Run** (ou pressione Ctrl+Enter)
+
+### ✨ Após executar:
+
+- Agendamentos funcionarão corretamente
+- Novos agendamentos terão tenant_id automaticamente
+- RLS estará configurado corretamente
+- Sem mais erros de "violates row-level security policy"
+
+### 🔍 Verificação (opcional):
+
+Após executar o script principal, você pode executar esta query para verificar:
 
 ```sql
--- ============================================
--- MIGRATION: Add tenant_id to appointments
--- ============================================
-
--- Add tenant_id column to appointments table (if it doesn't exist)
-ALTER TABLE public.appointments 
-ADD COLUMN IF NOT EXISTS tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE;
-
--- Create index for better query performance (if it doesn't exist)
-CREATE INDEX IF NOT EXISTS idx_appointments_tenant_id ON public.appointments(tenant_id);
-
--- Update existing appointments to have tenant_id from their contact or card
-UPDATE public.appointments a
-SET tenant_id = COALESCE(
-  (SELECT tenant_id FROM public.contacts c WHERE c.id = a.contact_id),
-  (SELECT tenant_id FROM public.cards cd WHERE cd.id = a.card_id)
-)
-WHERE tenant_id IS NULL;
-
--- Make tenant_id required for new appointments
-ALTER TABLE public.appointments 
-ALTER COLUMN tenant_id SET NOT NULL;
-
--- Drop old RLS policy
-DROP POLICY IF EXISTS "Users can manage appointments in tenant" ON public.appointments;
-
--- Create new simplified RLS policy using tenant_id
-CREATE POLICY "Users can manage appointments in tenant"
-  ON public.appointments
-  FOR ALL
-  TO authenticated
-  USING (tenant_id = public.get_user_tenant(auth.uid()))
-  WITH CHECK (tenant_id = public.get_user_tenant(auth.uid()));
+SELECT 
+  'appointments' as table_name,
+  COUNT(*) as total_rows,
+  COUNT(tenant_id) as rows_with_tenant,
+  COUNT(*) - COUNT(tenant_id) as rows_without_tenant
+FROM public.appointments;
 ```
 
-## 📝 O que foi Alterado
+---
 
-1. **Schema Inicial** (`supabase_setup.sql`):
-   - Adicionada coluna `tenant_id` na criação da tabela `appointments`
-   - Política RLS simplificada usando `tenant_id` diretamente
+## 🚨 Se o erro persistir:
 
-2. **Migration** (`supabase_migration_appointments_tenant.sql`):
-   - Tornada idempotente com `IF NOT EXISTS`
-   - Migra dados existentes antes de tornar `tenant_id` obrigatório
+1. Verifique se você está logado como usuário com tenant associado
+2. Execute no SQL Editor para ver seu tenant:
+```sql
+SELECT public.get_user_tenant(auth.uid());
+```
 
-3. **Hook** (`useAppointments.ts`):
-   - Interface `Appointment` atualizada com campo `tenant_id`
-   - `createAppointment` já insere o `tenant_id` corretamente
+3. Se retornar NULL, você precisa associar seu usuário a um tenant:
+```sql
+-- Primeiro, veja os tenants disponíveis
+SELECT id, name FROM public.tenants;
 
-## ✨ Próximos Passos
-
-Após executar a migration:
-1. O sistema de agendamentos funcionará corretamente
-2. Novos agendamentos terão `tenant_id` automaticamente
-3. A segurança RLS estará garantida por tenant
+-- Depois, associe seu usuário (substitua os UUIDs)
+UPDATE public.users 
+SET tenant_id = 'SEU_TENANT_ID_AQUI' 
+WHERE id = auth.uid();
+```
