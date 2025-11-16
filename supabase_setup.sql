@@ -180,6 +180,7 @@ alter table public.tasks enable row level security;
 -- Appointments table
 create table public.appointments (
   id uuid primary key default gen_random_uuid(),
+  tenant_id uuid references public.tenants(id) on delete cascade not null,
   card_id uuid references public.cards(id) on delete cascade,
   contact_id uuid references public.contacts(id) on delete cascade,
   title text not null,
@@ -191,6 +192,9 @@ create table public.appointments (
 );
 
 alter table public.appointments enable row level security;
+
+-- Create index for better query performance
+create index idx_appointments_tenant_id on public.appointments(tenant_id);
 
 -- Webhooks table
 create table public.webhooks (
@@ -319,27 +323,13 @@ create policy "Users can manage tasks in tenant"
     )
   );
 
--- Appointments: Users can manage appointments in their tenant
+-- Appointments: Users can manage appointments in their tenant (using tenant_id)
 create policy "Users can manage appointments in tenant"
   on public.appointments
   for all
   to authenticated
-  using (
-    card_id in (
-      select id from public.cards where tenant_id = public.get_user_tenant(auth.uid())
-    ) or
-    contact_id in (
-      select id from public.contacts where tenant_id = public.get_user_tenant(auth.uid())
-    )
-  )
-  with check (
-    card_id in (
-      select id from public.cards where tenant_id = public.get_user_tenant(auth.uid())
-    ) or
-    contact_id in (
-      select id from public.contacts where tenant_id = public.get_user_tenant(auth.uid())
-    )
-  );
+  using (tenant_id = public.get_user_tenant(auth.uid()))
+  with check (tenant_id = public.get_user_tenant(auth.uid()));
 
 -- Webhooks: Admin can manage webhooks
 create policy "Admin can manage webhooks in tenant"
