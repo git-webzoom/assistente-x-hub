@@ -31,12 +31,16 @@ export const AppointmentDialog = ({ open, onOpenChange, onSubmit, initial, selec
 
   useEffect(() => {
     if (initial) {
-      // Convert UTC times from DB to local time for the datetime-local input
-      const start = new Date(initial.start_time + 'Z'); // Ensure UTC
-      const end = new Date(initial.end_time + 'Z');
-      
-      // Format to local time for datetime-local input (removes timezone info)
-      const formatLocalDateTime = (date: Date) => {
+      // Parse dates from DB and convert to local time for datetime-local input
+      const parseAndFormat = (dateStr: string) => {
+        if (!dateStr) return "";
+        
+        // Create Date object - handles both ISO strings with/without timezone
+        const date = new Date(dateStr);
+        
+        if (isNaN(date.getTime())) return "";
+        
+        // Format to local datetime-local format (YYYY-MM-DDTHH:mm)
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
@@ -46,10 +50,10 @@ export const AppointmentDialog = ({ open, onOpenChange, onSubmit, initial, selec
       };
       
       setFormData({
-        title: initial.title,
+        title: initial.title || "",
         contact_id: initial.contact_id || "",
-        start_time: isNaN(start.getTime()) ? "" : formatLocalDateTime(start),
-        end_time: isNaN(end.getTime()) ? "" : formatLocalDateTime(end),
+        start_time: parseAndFormat(initial.start_time),
+        end_time: parseAndFormat(initial.end_time),
         location: initial.location || "",
         status: initial.status || "scheduled",
       });
