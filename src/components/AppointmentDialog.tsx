@@ -31,13 +31,25 @@ export const AppointmentDialog = ({ open, onOpenChange, onSubmit, initial, selec
 
   useEffect(() => {
     if (initial) {
-      const start = new Date(initial.start_time);
-      const end = new Date(initial.end_time);
+      // Convert UTC times from DB to local time for the datetime-local input
+      const start = new Date(initial.start_time + 'Z'); // Ensure UTC
+      const end = new Date(initial.end_time + 'Z');
+      
+      // Format to local time for datetime-local input (removes timezone info)
+      const formatLocalDateTime = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+      };
+      
       setFormData({
         title: initial.title,
         contact_id: initial.contact_id || "",
-        start_time: isNaN(start.getTime()) ? "" : format(start, "yyyy-MM-dd'T'HH:mm"),
-        end_time: isNaN(end.getTime()) ? "" : format(end, "yyyy-MM-dd'T'HH:mm"),
+        start_time: isNaN(start.getTime()) ? "" : formatLocalDateTime(start),
+        end_time: isNaN(end.getTime()) ? "" : formatLocalDateTime(end),
         location: initial.location || "",
         status: initial.status || "scheduled",
       });
@@ -67,8 +79,15 @@ export const AppointmentDialog = ({ open, onOpenChange, onSubmit, initial, selec
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Convert local datetime-local input to UTC ISO string for DB
+    const startLocal = new Date(formData.start_time);
+    const endLocal = new Date(formData.end_time);
+    
     const submitData = {
       ...formData,
+      start_time: startLocal.toISOString(),
+      end_time: endLocal.toISOString(),
       contact_id: formData.contact_id || null,
     };
     onSubmit(submitData);
