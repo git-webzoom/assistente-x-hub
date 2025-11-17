@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -9,7 +10,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,15 +20,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { ContactFormDialog } from '@/components/ContactFormDialog';
 import { useContacts, Contact } from '@/hooks/useContacts';
-import { Plus, Search, Users, MoreVertical, Edit, Trash2 } from 'lucide-react';
+import { Plus, Search, Users, Edit } from 'lucide-react';
 
 const Contacts = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -99,53 +93,32 @@ const Contacts = () => {
       </div>
 
       {/* Contacts Table */}
-      {isLoading ? (
-        <div className="border rounded-lg">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Cargo</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Telefone</TableHead>
-                <TableHead className="w-[50px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <TableRow key={i}>
-                  <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-40" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-28" /></TableCell>
-                  <TableCell><Skeleton className="h-8 w-8" /></TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      ) : contacts.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-            <Users className="w-8 h-8 text-primary" />
+      <Card>
+        {isLoading ? (
+          <div className="p-8 text-center text-muted-foreground">
+            Carregando contatos...
           </div>
-          <h3 className="text-xl font-semibold mb-2">
-            {searchQuery ? 'Nenhum contato encontrado' : 'Nenhum contato cadastrado'}
-          </h3>
-          <p className="text-muted-foreground mb-6 max-w-md">
-            {searchQuery
-              ? 'Tente ajustar sua busca ou limpar os filtros'
-              : 'Comece adicionando seu primeiro contato para gerenciar seus relacionamentos'}
-          </p>
-          {!searchQuery && (
-            <Button onClick={handleNewContact}>
-              <Plus className="mr-2 h-4 w-4" />
-              Adicionar Primeiro Contato
-            </Button>
-          )}
-        </div>
-      ) : (
-        <div className="border rounded-lg">
+        ) : !contacts || contacts.length === 0 ? (
+          <div className="p-8 text-center">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 mx-auto">
+              <Users className="w-8 h-8 text-primary" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">
+              {searchQuery ? 'Nenhum contato encontrado' : 'Nenhum contato cadastrado'}
+            </h3>
+            <p className="text-muted-foreground mb-6">
+              {searchQuery
+                ? 'Tente ajustar sua busca ou limpar os filtros'
+                : 'Comece adicionando seu primeiro contato para gerenciar seus relacionamentos'}
+            </p>
+            {!searchQuery && (
+              <Button onClick={handleNewContact}>
+                <Plus className="mr-2 h-4 w-4" />
+                Adicionar Primeiro Contato
+              </Button>
+            )}
+          </div>
+        ) : (
           <Table>
             <TableHeader>
               <TableRow>
@@ -153,44 +126,40 @@ const Contacts = () => {
                 <TableHead>Cargo</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Telefone</TableHead>
-                <TableHead className="w-[50px]"></TableHead>
+                <TableHead className="w-[100px]">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {contacts.map((contact) => (
-                <TableRow key={contact.id}>
+                <TableRow
+                  key={contact.id}
+                  className="cursor-pointer hover:bg-accent/50"
+                  onClick={() => handleEdit(contact)}
+                >
                   <TableCell className="font-medium">{contact.name}</TableCell>
                   <TableCell>{contact.position || '-'}</TableCell>
                   <TableCell>{contact.email || '-'}</TableCell>
                   <TableCell>{contact.phone || '-'}</TableCell>
                   <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-background">
-                        <DropdownMenuItem onClick={() => handleEdit(contact)}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => handleDelete(contact)}
-                          className="text-destructive focus:text-destructive"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEdit(contact);
+                        }}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-        </div>
-      )}
+        )}
+      </Card>
 
       {/* Form Dialog */}
       <ContactFormDialog
