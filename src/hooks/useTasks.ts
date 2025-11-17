@@ -7,6 +7,7 @@ export type TaskStatus = "pending" | "in_progress" | "completed";
 
 export interface Task {
   id: string;
+  tenant_id: string;
   card_id: string | null;
   assigned_to: string | null;
   title: string;
@@ -19,7 +20,7 @@ export interface Task {
     contacts?: {
       name: string;
     } | null;
-  };
+  } | null;
   users?: {
     email: string;
   } | null;
@@ -59,9 +60,21 @@ export const useTasks = () => {
 
   const createTask = useMutation({
     mutationFn: async (newTask: Omit<Task, "id" | "created_at" | "cards" | "users">) => {
+      if (!user) throw new Error("User not authenticated");
+
+      // Get user's tenant_id
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("tenant_id")
+        .eq("id", user.id)
+        .single();
+
+      if (userError) throw userError;
+      if (!userData?.tenant_id) throw new Error("User tenant not found");
+
       const { data, error } = await supabase
         .from("tasks")
-        .insert([newTask])
+        .insert([{ ...newTask, tenant_id: userData.tenant_id }])
         .select()
         .single();
 

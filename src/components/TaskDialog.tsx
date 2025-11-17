@@ -55,6 +55,7 @@ const TaskDialog = ({ open, onOpenChange, onSubmit, initial, onDelete }: TaskDia
     
     const taskData: Partial<Task> = {
       ...formData,
+      card_id: formData.card_id || null,
       due_date: formData.due_date || null,
       notes: formData.notes || null,
     };
