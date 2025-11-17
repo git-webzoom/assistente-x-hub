@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -9,12 +10,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,13 +21,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Plus,
   Search,
-  MoreVertical,
   Edit,
-  Trash2,
   Package,
   AlertTriangle,
 } from "lucide-react";
@@ -145,67 +137,58 @@ const Products = () => {
         </div>
       </div>
 
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Produto</TableHead>
-              <TableHead>SKU</TableHead>
-              <TableHead>Categoria</TableHead>
-              <TableHead className="text-right">Preço</TableHead>
-              <TableHead className="text-right">Custo</TableHead>
-              <TableHead className="text-center">Estoque</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="w-[50px]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <TableRow key={i}>
-                  <TableCell>
-                    <Skeleton className="h-4 w-[200px]" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-[100px]" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-[80px]" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-[80px]" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-[80px]" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-[60px]" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-[60px]" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-[40px]" />
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : filteredProducts.length === 0 ? (
+      <Card>
+        {isLoading ? (
+          <div className="p-8 text-center text-muted-foreground">
+            Carregando produtos...
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="p-8 text-center">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 mx-auto">
+              <Package className="w-8 h-8 text-primary" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">
+              {searchQuery ? 'Nenhum produto encontrado' : 'Nenhum produto cadastrado'}
+            </h3>
+            <p className="text-muted-foreground mb-6">
+              {searchQuery
+                ? 'Tente ajustar sua busca ou limpar os filtros'
+                : 'Comece adicionando seu primeiro produto ao catálogo'}
+            </p>
+            {!searchQuery && (
+              <Button onClick={() => {
+                setEditingProduct(null);
+                setDialogOpen(true);
+              }}>
+                <Plus className="mr-2 h-4 w-4" />
+                Adicionar Primeiro Produto
+              </Button>
+            )}
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8">
-                  <Package className="w-12 h-12 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-muted-foreground">
-                    {searchQuery
-                      ? "Nenhum produto encontrado"
-                      : "Nenhum produto cadastrado"}
-                  </p>
-                </TableCell>
+                <TableHead>Produto</TableHead>
+                <TableHead>SKU</TableHead>
+                <TableHead>Categoria</TableHead>
+                <TableHead className="text-right">Preço</TableHead>
+                <TableHead className="text-right">Custo</TableHead>
+                <TableHead className="text-center">Estoque</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="w-[100px]">Ações</TableHead>
               </TableRow>
-            ) : (
-              filteredProducts.map((product) => {
+            </TableHeader>
+            <TableBody>
+              {filteredProducts.map((product) => {
                 const isLowStock =
                   product.stock_quantity <= product.min_stock_level;
                 return (
-                  <TableRow key={product.id}>
+                  <TableRow
+                    key={product.id}
+                    className="cursor-pointer hover:bg-accent/50"
+                    onClick={() => openEditDialog(product)}
+                  >
                     <TableCell>
                       <div>
                         <div className="font-medium">{product.name}</div>
@@ -233,15 +216,17 @@ const Products = () => {
                       {formatCurrency(product.cost)}
                     </TableCell>
                     <TableCell className="text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        {isLowStock && (
-                          <AlertTriangle className="w-4 h-4 text-destructive" />
-                        )}
+                      <div className="flex items-center justify-center gap-2">
                         <span
-                          className={isLowStock ? "text-destructive font-medium" : ""}
+                          className={
+                            isLowStock ? "text-destructive font-semibold" : ""
+                          }
                         >
                           {product.stock_quantity}
                         </span>
+                        {isLowStock && (
+                          <AlertTriangle className="w-4 h-4 text-destructive" />
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -252,36 +237,24 @@ const Products = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => openEditDialog(product)}
-                          >
-                            <Edit className="w-4 h-4 mr-2" />
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => openDeleteDialog(product)}
-                            className="text-destructive"
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openEditDialog(product);
+                        }}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 );
-              })
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              })}
+            </TableBody>
+          </Table>
+        )}
+      </Card>
 
       <ProductDialog
         open={dialogOpen}
