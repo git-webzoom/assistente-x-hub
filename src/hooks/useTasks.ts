@@ -7,7 +7,7 @@ export type TaskStatus = "pending" | "in_progress" | "completed";
 
 export interface Task {
   id: string;
-  card_id: string;
+  card_id: string | null;
   assigned_to: string | null;
   title: string;
   due_date: string | null;

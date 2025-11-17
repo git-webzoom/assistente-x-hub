@@ -84,14 +84,13 @@ const TaskDialog = ({ open, onOpenChange, onSubmit, initial, onDelete }: TaskDia
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="card">Card *</Label>
+            <Label htmlFor="card">Card (Opcional)</Label>
             <Select
               value={formData.card_id}
               onValueChange={(value) => setFormData({ ...formData, card_id: value })}
-              required
             >
               <SelectTrigger>
-                <SelectValue placeholder="Selecione um card" />
+                <SelectValue placeholder="Selecione um card (opcional)" />
               </SelectTrigger>
               <SelectContent>
                 {cards?.map((card) => (
