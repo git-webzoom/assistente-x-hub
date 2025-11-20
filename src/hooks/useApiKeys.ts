@@ -34,13 +34,36 @@ export const useApiKeys = () => {
 
   const createApiKey = useMutation({
     mutationFn: async ({ name, rateLimit }: { name: string; rateLimit?: number }) => {
-      // Call edge function to generate API key
-      const { data, error } = await supabase.functions.invoke('generate-api-key', {
-        body: { name, rate_limit_per_minute: rateLimit || 60 }
-      });
+      // Gerar chave de API no cliente e salvar apenas o hash no banco
+      const randomBytes = new Uint8Array(32);
+      crypto.getRandomValues(randomBytes);
+      const apiKey =
+        "sk_live_" +
+        Array.from(randomBytes)
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
+
+      const encoder = new TextEncoder();
+      const dataToHash = encoder.encode(apiKey);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", dataToHash);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const keyHash = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+      const keyPrefix = apiKey.substring(0, 15) + "...";
+
+      const { data, error } = await supabase
+        .from("api_keys")
+        .insert({
+          name,
+          key_hash: keyHash,
+          key_prefix: keyPrefix,
+          is_active: true,
+          rate_limit_per_minute: rateLimit || 60,
+        })
+        .select("*")
+        .single();
 
       if (error) throw error;
-      return data;
+      return { ...data, api_key: apiKey };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["api-keys"] });
