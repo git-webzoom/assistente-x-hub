@@ -47,7 +47,13 @@ serve(async (req) => {
 
     console.log('User ID:', user.id);
 
-    const { data: userRecord, error: userRecordError } = await supabase
+    // Create admin supabase client to bypass RLS
+    const adminSupabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    const { data: userRecord, error: userRecordError } = await adminSupabase
       .from('users')
       .select('tenant_id')
       .eq('id', user.id)
@@ -62,7 +68,6 @@ serve(async (req) => {
     }
 
     const tenantId = userRecord.tenant_id;
-
     console.log('Tenant ID:', tenantId);
 
     // Generate random API key
@@ -77,14 +82,6 @@ serve(async (req) => {
     // Hash the key using SHA-256
     const keyHash = await hashApiKey(apiKey);
     const keyPrefix = apiKey.substring(0, 15) + '...';
-
-    console.log('Key hash created, prefix:', keyPrefix);
-
-    // Create admin supabase client
-    const adminSupabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
 
     // Store hashed key in database
     const { data, error } = await adminSupabase
