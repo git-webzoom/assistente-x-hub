@@ -1,9 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
-// This is a database function helper for verifying API keys
-// Called via RPC from the main API
+// Simple hash function (SHA-256) matching the one in generate-api-key
+async function hashApiKey(apiKey: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(apiKey);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 serve(async (req) => {
   try {
@@ -14,25 +19,20 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Get all active API keys (we'll verify hash in memory)
+    // Hash the provided API key
+    const keyHash = await hashApiKey(api_key);
+
+    // Find matching key by hash
     const { data: keys, error } = await supabase
       .from('api_keys')
       .select('*')
-      .eq('is_active', true);
+      .eq('key_hash', keyHash)
+      .eq('is_active', true)
+      .limit(1);
 
     if (error) throw error;
 
-    // Find matching key by comparing hashes
-    for (const key of keys) {
-      const isValid = await bcrypt.compare(api_key, key.key_hash);
-      if (isValid) {
-        return new Response(JSON.stringify([key]), {
-          headers: { 'Content-Type': 'application/json' },
-        });
-      }
-    }
-
-    return new Response(JSON.stringify([]), {
+    return new Response(JSON.stringify(keys || []), {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
