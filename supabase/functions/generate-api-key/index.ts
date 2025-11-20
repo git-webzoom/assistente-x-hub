@@ -47,21 +47,23 @@ serve(async (req) => {
 
     console.log('User ID:', user.id);
 
-    const { data: userRole, error: userRoleError } = await supabase
-      .from('user_roles')
+    const { data: userRecord, error: userRecordError } = await supabase
+      .from('users')
       .select('tenant_id')
-      .eq('user_id', user.id)
+      .eq('id', user.id)
       .single();
 
-    if (userRoleError || !userRole) {
-      console.error('No tenant found:', userRoleError);
-      return new Response(JSON.stringify({ error: 'No tenant found', details: userRoleError }), {
+    if (userRecordError || !userRecord || !userRecord.tenant_id) {
+      console.error('No tenant found for user:', userRecordError);
+      return new Response(JSON.stringify({ error: 'No tenant found', details: userRecordError }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    console.log('Tenant ID:', userRole.tenant_id);
+    const tenantId = userRecord.tenant_id;
+
+    console.log('Tenant ID:', tenantId);
 
     // Generate random API key
     const randomBytes = new Uint8Array(32);
@@ -88,7 +90,7 @@ serve(async (req) => {
     const { data, error } = await adminSupabase
       .from('api_keys')
       .insert({
-        tenant_id: userRole.tenant_id,
+        tenant_id: tenantId,
         name,
         key_hash: keyHash,
         key_prefix: keyPrefix,
