@@ -1,0 +1,8 @@
+[functions.api-v1]
+verify_jwt = false
+
+[functions.verify-api-key]
+verify_jwt = false
+
+[functions.generate-api-key]
+verify_jwt = true
