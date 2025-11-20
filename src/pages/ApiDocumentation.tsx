@@ -19,7 +19,7 @@ export default function ApiDocumentation() {
       methods: [
         {
           method: "GET",
-          path: "/contacts",
+          path: "/v1/contacts",
           description: "Listar todos os contatos",
           params: [
             { name: "limit", type: "number", description: "Limite de resultados (max 100)" },
@@ -28,23 +28,23 @@ export default function ApiDocumentation() {
             { name: "email", type: "string", description: "Filtrar por email exato" },
             { name: "custom_fields.campo", type: "string", description: "Filtrar por campo personalizado" },
           ],
-          example: `curl -X GET "${baseUrl}/contacts?limit=10" \\
+          example: `curl -X GET "${baseUrl}/v1/contacts?limit=10" \\
   -H "x-api-key: sk_live_your_api_key_here"`
         },
         {
           method: "GET",
-          path: "/contacts/:id",
+          path: "/v1/contacts/:id",
           description: "Buscar um contato específico",
           params: [],
-          example: `curl -X GET "${baseUrl}/contacts/{contact_id}" \\
+          example: `curl -X GET "${baseUrl}/v1/contacts/{contact_id}" \\
   -H "x-api-key: sk_live_your_api_key_here"`
         },
         {
           method: "POST",
-          path: "/contacts",
+          path: "/v1/contacts",
           description: "Criar novo contato",
           params: [],
-          example: `curl -X POST "${baseUrl}/contacts" \\
+          example: `curl -X POST "${baseUrl}/v1/contacts" \\
   -H "x-api-key: sk_live_your_api_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -59,10 +59,10 @@ export default function ApiDocumentation() {
         },
         {
           method: "PUT",
-          path: "/contacts/:id",
+          path: "/v1/contacts/:id",
           description: "Atualizar contato",
           params: [],
-          example: `curl -X PUT "${baseUrl}/contacts/{contact_id}" \\
+          example: `curl -X PUT "${baseUrl}/v1/contacts/{contact_id}" \\
   -H "x-api-key: sk_live_your_api_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -72,10 +72,10 @@ export default function ApiDocumentation() {
         },
         {
           method: "DELETE",
-          path: "/contacts/:id",
+          path: "/v1/contacts/:id",
           description: "Deletar contato",
           params: [],
-          example: `curl -X DELETE "${baseUrl}/contacts/{contact_id}" \\
+          example: `curl -X DELETE "${baseUrl}/v1/contacts/{contact_id}" \\
   -H "x-api-key: sk_live_your_api_key_here"`
         },
       ],
@@ -86,7 +86,7 @@ export default function ApiDocumentation() {
       methods: [
         {
           method: "GET",
-          path: "/products",
+          path: "/v1/products",
           description: "Listar todos os produtos",
           params: [
             { name: "limit", type: "number", description: "Limite de resultados" },
@@ -94,15 +94,16 @@ export default function ApiDocumentation() {
             { name: "is_active", type: "boolean", description: "Filtrar por status ativo" },
             { name: "category", type: "string", description: "Filtrar por categoria" },
           ],
-          example: `curl -X GET "${baseUrl}/products?limit=20&is_active=true" \\
+          example: `curl -X GET "${baseUrl}/v1/products?limit=20
+									 	 &is_active=true" \\
   -H "x-api-key: sk_live_your_api_key_here"`
         },
         {
           method: "POST",
-          path: "/products",
+          path: "/v1/products",
           description: "Criar novo produto",
           params: [],
-          example: `curl -X POST "${baseUrl}/products" \\
+          example: `curl -X POST "${baseUrl}/v1/products" \\
   -H "x-api-key: sk_live_your_api_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -122,14 +123,14 @@ export default function ApiDocumentation() {
       methods: [
         {
           method: "GET",
-          path: "/appointments",
+          path: "/v1/appointments",
           description: "Listar todos os compromissos",
           params: [
             { name: "limit", type: "number", description: "Limite de resultados" },
             { name: "start_time_gte", type: "datetime", description: "Data início maior ou igual" },
             { name: "status", type: "string", description: "Filtrar por status" },
           ],
-          example: `curl -X GET "${baseUrl}/appointments?status=scheduled" \\
+          example: `curl -X GET "${baseUrl}/v1/appointments?status=scheduled" \\
   -H "x-api-key: sk_live_your_api_key_here"`
         },
       ],
@@ -140,19 +141,18 @@ export default function ApiDocumentation() {
       methods: [
         {
           method: "GET",
-          path: "/tasks",
+          path: "/v1/tasks",
           description: "Listar todas as tarefas",
           params: [
             { name: "completed", type: "boolean", description: "Filtrar por status" },
             { name: "contact_id", type: "uuid", description: "Filtrar por contato" },
           ],
-          example: `curl -X GET "${baseUrl}/tasks?completed=false" \\
+          example: `curl -X GET "${baseUrl}/v1/tasks?completed=false" \\
   -H "x-api-key: sk_live_your_api_key_here"`
         },
       ],
     },
   };
-
   return (
     <div className="container mx-auto py-8 space-y-6">
       <div className="flex items-center justify-between">
