@@ -4,6 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 // Simple hash function (SHA-256) to replace bcrypt
@@ -17,9 +18,11 @@ async function hashApiKey(apiKey: string): Promise<string> {
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { 
+    return new Response(null, {
       status: 200,
-      headers: corsHeaders 
+      headers: {
+        ...corsHeaders,
+      },
     });
   }
 
