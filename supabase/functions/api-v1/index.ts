@@ -198,7 +198,7 @@ async function handleContacts(
 ): Promise<Response> {
   const url = new URL(req.url);
   const method = req.method;
-  const id = path[2]; // /v1/contacts/:id
+  const id = path[1]; // /contacts/:id
 
   // GET /v1/contacts or /v1/contacts/:id
   if (method === 'GET') {
@@ -375,15 +375,15 @@ serve(async (req) => {
     const apiIndex = segments.indexOf('api-v1');
     const path = apiIndex >= 0 ? segments.slice(apiIndex + 1) : segments;
 
-    // Route to appropriate handler
-    if (path[0] !== 'v1') {
-      return new Response(JSON.stringify({ error: 'Invalid API version' }), {
+    // Route to appropriate handler - path is now ["contacts"] or ["contacts", "id"]
+    if (!path[0]) {
+      return new Response(JSON.stringify({ error: 'Resource not specified' }), {
         status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const resource = path[1];
+    const resource = path[0];
     let response: Response;
 
     switch (resource) {
