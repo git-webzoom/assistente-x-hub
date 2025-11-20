@@ -17,6 +17,7 @@ import Products from "./pages/Products";
 import Appointments from "./pages/Appointments";
 import Tasks from "./pages/Tasks";
 import Settings from "./pages/Settings";
+import ApiDocumentation from "./pages/ApiDocumentation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
                 <Route path="appointments" element={<Appointments />} />
                 <Route path="tasks" element={<Tasks />} />
                 <Route path="settings" element={<Settings />} />
+                <Route path="api-docs" element={<ApiDocumentation />} />
               </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

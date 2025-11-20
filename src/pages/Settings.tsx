@@ -1,8 +1,8 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearchParams } from "react-router-dom";
 import CustomFieldsSettings from "./settings/CustomFieldsSettings";
-import ApiSettings from "./settings/ApiSettings";
-import WebhookSettings from "./settings/WebhookSettings";
+import ApiKeysSettings from "./settings/ApiKeysSettings";
+import WebhooksSettings from "./settings/WebhooksSettings";
 
 const Settings = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -24,20 +24,20 @@ const Settings = () => {
       <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-6">
         <TabsList>
           <TabsTrigger value="custom-fields">Campos Personalizados</TabsTrigger>
-          <TabsTrigger value="api">API</TabsTrigger>
-          <TabsTrigger value="webhook">Webhooks</TabsTrigger>
+          <TabsTrigger value="api-keys">Chaves API</TabsTrigger>
+          <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
         </TabsList>
 
         <TabsContent value="custom-fields" className="space-y-4">
           <CustomFieldsSettings />
         </TabsContent>
 
-        <TabsContent value="api" className="space-y-4">
-          <ApiSettings />
+        <TabsContent value="api-keys" className="space-y-4">
+          <ApiKeysSettings />
         </TabsContent>
 
-        <TabsContent value="webhook" className="space-y-4">
-          <WebhookSettings />
+        <TabsContent value="webhooks" className="space-y-4">
+          <WebhooksSettings />
         </TabsContent>
       </Tabs>
     </div>
