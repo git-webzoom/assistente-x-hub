@@ -7,11 +7,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { useApiKeys } from "@/hooks/useApiKeys";
-import { Copy, Plus, Trash2, Eye, EyeOff } from "lucide-react";
+import { Copy, Plus, Trash2, Eye, EyeOff, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 
 export default function ApiKeysSettings() {
+  const navigate = useNavigate();
   const { apiKeys, isLoading, createApiKey, updateApiKey, deleteApiKey } = useApiKeys();
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -100,50 +102,59 @@ export default function ApiKeysSettings() {
                 Gerencie suas chaves de API para integrações externas
               </CardDescription>
             </div>
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Nova Chave
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Criar Nova Chave API</DialogTitle>
-                  <DialogDescription>
-                    Crie uma nova chave para integrar seu sistema com aplicações externas
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Nome da Chave</Label>
-                    <Input
-                      id="name"
-                      placeholder="Ex: Integração Mobile App"
-                      value={newKeyName}
-                      onChange={(e) => setNewKeyName(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="rateLimit">Limite de Requisições/Minuto</Label>
-                    <Input
-                      id="rateLimit"
-                      type="number"
-                      placeholder="60"
-                      value={newKeyRateLimit}
-                      onChange={(e) => setNewKeyRateLimit(e.target.value)}
-                    />
-                  </div>
-                  <Button
-                    onClick={handleCreateKey}
-                    disabled={!newKeyName}
-                    className="w-full"
-                  >
-                    Criar Chave
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => navigate("/dashboard/api-docs")}
+              >
+                <BookOpen className="mr-2 h-4 w-4" />
+                Ver Documentação
+              </Button>
+              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Nova Chave
                   </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Criar Nova Chave API</DialogTitle>
+                    <DialogDescription>
+                      Crie uma nova chave para integrar seu sistema com aplicações externas
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Nome da Chave</Label>
+                      <Input
+                        id="name"
+                        placeholder="Ex: Integração Mobile App"
+                        value={newKeyName}
+                        onChange={(e) => setNewKeyName(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="rateLimit">Limite de Requisições/Minuto</Label>
+                      <Input
+                        id="rateLimit"
+                        type="number"
+                        placeholder="60"
+                        value={newKeyRateLimit}
+                        onChange={(e) => setNewKeyRateLimit(e.target.value)}
+                      />
+                    </div>
+                    <Button
+                      onClick={handleCreateKey}
+                      disabled={!newKeyName}
+                      className="w-full"
+                    >
+                      Criar Chave
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
